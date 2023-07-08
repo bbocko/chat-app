@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Blaž Bočko">
+    <title>Chat App</title>
+
+    <link rel="stylesheet" href="./css/chat.css">
+</head>
+
+<body>
+    <div class="chat-container">
+
+        <header class="chat-header">
+            <h1>Chat App</h1>
+            <a href="index.html" class="btn">Leave Room</a>
+        </header>
+
+        <div class="content-container">
+
+            <div class="sidebar">
+                <h3>Room Name:</h3>
+                <h2 id="room-name">Room 1</h2>
+                <h3>Users:</h3>
+                <ul id="users">
+                    <li>Blaž</li>
+                </ul>
+            </div>
+
+            <main class="main-content">
+                <div class="messages">
+                    <div class="message">
+                        <p class="meta">Blaž <span>19:40</span></p>
+                        <p class="text">
+                            Hello world!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="chat-form-container">
+                    <form id="chat-form">
+                        <input id="message" type="text" placeholder="Enter Message" required autocomplete="off" />
+                        <button class="btn">Send</button>
+                    </form>
+                </div>
+            </main>
+
+        </div>
+
+    </div>
+</body>
+
+</html>
