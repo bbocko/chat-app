@@ -18,10 +18,10 @@
         </header>
 
         <main class="home-main">
-            <form action="chat.html">
+            <form id="joinForm">
                 <div class="form-username">
-                    <label for="username">Username</label>
-                    <input type="text" name="username" id="username" placeholder="Enter username" required />
+                    <label for="usernameInput">Username</label>
+                    <input type="text" name="usernameInput" id="usernameInput" placeholder="Enter username" required />
                 </div>
                 <div class="form-room">
                     <label for="room">Room</label>
@@ -29,7 +29,7 @@
                         <option value="new-room">Create new room</option>
                     </select>
                 </div>
-                <div class="form-new-room">
+                <div class="form-new-room" id="newRoomInputContainer">
                     <input type="text" name="new-room" id="new-room" placeholder="Enter room name">
                 </div>
                 <button type="submit" class="btn">Join Chat</button>
