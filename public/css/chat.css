@@ -91,6 +91,7 @@ body {
     background-color: #f4f4f4;
     padding: 1rem;
     border-radius: 4px;
+    height: 670px;
     overflow-y: auto;
     /* Add vertical scroll to sidebar */
 }
@@ -130,8 +131,7 @@ body {
     padding: 1rem;
     margin-top: 1rem;
     margin-bottom: 1rem;
-    flex-grow: 1;
-    /* Make messages container grow to fill available space */
+    height: 600px;
     overflow-y: auto;
     /* Add vertical scroll to messages */
 }
