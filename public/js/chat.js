@@ -2,6 +2,7 @@ const chatForm = document.getElementById("chat-form");
 const chatMessages = document.querySelector(".messages");
 const roomName = document.getElementById("room-name");
 const userList = document.getElementById("users");
+const deleteRoomButton = document.querySelector(".btn-delete");
 
 // register io as global variable
 const socket = io();
@@ -26,6 +27,9 @@ chatForm.addEventListener("submit", (e) => {
     e.target.elements.message.value = "";
     e.target.elements.message.focus();
 });
+
+// event listener for deleting rooms
+deleteRoomButton.addEventListener("click", confirmDeleteRoom);
 
 // get message from server
 socket.on("message", (message) => {
@@ -63,13 +67,23 @@ const { room, username } = getUrlParams();
 // send to server to join chatroom
 socket.emit("joinRoom", { room, username });
 
-// Get room and users
+// get room and users
 socket.on("roomUsers", ({ room, users }) => {
     outputRoomName(room);
     outputUsers(users);
 });
 
-// Add room name to DOM
+// handle "roomDeleted" event from the server
+socket.on("roomDeleted", ({ roomId }) => {
+    // check if the current room being displayed is the deleted room
+    if (room === roomId) {
+        alert("The room has been deleted.");
+        // redirect to index.html
+        window.location.href = "index.html";
+    }
+});
+
+// add room name to DOM
 function outputRoomName(room) {
     roomName.innerText = room;
 }
@@ -81,4 +95,33 @@ function outputUsers(users) {
         li.innerText = user.username;
         userList.appendChild(li);
     });
+}
+
+// function to confirm delete room
+function confirmDeleteRoom() {
+    const confirmation = confirm("Are you sure you want to delete the room?");
+    if (confirmation) {
+        deleteRoom();
+    }
+}
+
+// function to delete room
+async function deleteRoom() {
+    try {
+        // get the room ID from the URL parameters
+        const { room } = getUrlParams();
+
+        // make an API request to delete the room
+        await fetch(`/api/rooms/${room}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        // redirect users to the index.html page
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Error deleting room:", error);
+    }
 }

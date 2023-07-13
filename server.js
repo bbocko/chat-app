@@ -46,7 +46,7 @@ app.get("/api/rooms", async (req, res) => {
 app.post("/api/rooms", async (req, res) => {
     const { roomName } = req.body;
 
-    // Validate the roomName field
+    // validate the roomName field
     if (!roomName) {
         return res.status(400).json({ message: "Room name is required" });
     }
@@ -82,36 +82,72 @@ app.post("/api/join", async (req, res) => {
     }
 });
 
+// API for deleting a room
+app.delete("/api/rooms/:roomId", async (req, res) => {
+    const roomId = req.params.roomId;
+
+    try {
+        await db.transaction(async (trx) => {
+            // delete messages associated with the room
+            await db("messages").where("chat_room_id", roomId).del().transacting(trx);
+
+            // delete the room
+            await db("chat_rooms").where("id", roomId).del().transacting(trx);
+        });
+
+        res.status(204).end();
+    } catch (error) {
+        console.error("Error deleting room:", error);
+        res.status(500).json({ message: "Failed to delete room" });
+    }
+});
+
 function formatMessage(username, text) {
     return {
         username,
         text,
-        time: moment().format("hh:mm a"),
+        time: moment().format("HH:mm"),
     };
 }
 
 const botName = "Chat Bot";
 
-// Array to store users in a room
+// array to store users in a room
 const users = [];
 
-// Fetch the room name from the database and emit roomUsers
+// fetch the room name from the database and emit roomUsers
 async function emitRoomUsers(roomId) {
     try {
         const roomData = await db("chat_rooms").where("id", roomId).first();
         if (!roomData) {
-            throw new Error("Room not found");
+            // room not found, emit a message to clients
+            io.to(roomId).emit("roomDeleted", { roomId });
+            return;
         }
 
         const { name } = roomData;
 
-        // Emit the room name and users to the client
+        // emit the room name and users to the client
         io.to(roomId).emit("roomUsers", {
             room: name,
             users: users.filter((u) => u.room === roomId),
         });
     } catch (error) {
         console.error("Error getting room data:", error);
+    }
+}
+
+// save message to the database
+async function saveMessage(roomId, userName, content) {
+    try {
+        await db("messages").insert({
+            chat_room_id: roomId,
+            user_name: userName,
+            content: content,
+            created_at: moment().format("YYYY-MM-DD HH:mm:ss"),
+        });
+    } catch (error) {
+        console.error("Error saving message:", error);
     }
 }
 
@@ -125,7 +161,7 @@ io.on("connection", (socket) => {
 
         socket.emit("message", formatMessage(botName, "Welcome to chat"));
 
-        // Fetch the room name from the database and emit roomUsers
+        // fetch the room name from the database and emit roomUsers
         emitRoomUsers(room);
 
         socket.to(user.room).emit(
@@ -135,10 +171,13 @@ io.on("connection", (socket) => {
     });
 
     // listen to chatMessage
-    socket.on("chatMessage", (msg) => {
+    socket.on("chatMessage", async (msg) => {
         const user = users.find((u) => u.id === socket.id);
         if (user) {
             io.to(user.room).emit("message", formatMessage(user.username, msg));
+
+            // save the message to the database
+            await saveMessage(user.room, user.username, msg);
         }
     });
 
@@ -154,7 +193,7 @@ io.on("connection", (socket) => {
                 formatMessage(botName, `${user.username} has left the chat`)
             );
 
-            // Emit the room name and users to the client
+            // emit the room name and users to the client
             emitRoomUsers(user.room);
         }
     });
